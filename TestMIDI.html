@@ -1,0 +1,134 @@
+<html lang=en>
+<head>
+<title> MIMIC MIDI </title>
+
+<script src="NexusUI.js"></script>
+<script src="MIMICMIDI.js"></script>
+<script src="webmidi.min.js"></script>
+</head>
+
+<body>
+
+<h1>Select MIDI</h1>
+
+MIDI In:<div nexus-ui="select" id="midiInputs"></div>
+MIDI Out: <div nexus-ui="select" id="midiOutputs"></div>
+<div nexus-ui="button" id="refreshDevices"></div>
+<div nexus-ui="button" id="setMIDIFunctions"></div>
+<div nexus-ui="piano" id="piano"></div>
+
+<script>
+
+var midi = new MIDI();
+var noteArray = [];
+
+
+// this won't work as there is no devices available at this point in time
+// midi.setInDevice(3);
+// midi.onNoteOn((note)=>{
+//    console.log("inside ON NOTEON function. Arg: " + note);
+// });
+
+
+//midiin.noteOn((e)=>{console.log("got this note: " )});
+
+var selectIn = new Nexus.Select('#midiInputs',{
+  'size': [300,30],
+  'options': ["oo", "dhos"]
+})
+selectIn.on('change',function(v) {
+  midi.setInDevice(v.index, false);
+  console.log("midi in name: " +  midi.name);
+})
+var selectOut = new Nexus.Select('#midiOutputs',{
+  'size': [300,30],
+  'options': ['one','two']
+})
+selectOut.on('change',function(v) {
+  midi.setOutDevice(v.index);
+  console.log("midi out name: " +  midi.name);
+})
+
+
+
+var deviceButton = new Nexus.TextButton('#refreshDevices',{
+    'size': [250,50],
+    'state': false,
+    'text': 'Refres Devices'
+})
+deviceButton.on('change',function(v) {
+  //selectIn.selectedIndex = 1;
+  selectIn.defineOptions(midi.inDevices());
+  selectOut.defineOptions(midi.outDevices());
+  console.log(v);
+})
+
+// In June 2019, there will be a requirement for asking a permission for MIDI with a user event
+var functionButton = new Nexus.TextButton('#setMIDIFunctions',{
+    'size': [250,50],
+    'state': false,
+    'text': 'set MIDI functions'
+})
+functionButton.on('change',function(v) {
+    console.log("noteArray: " + noteArray);
+    if(v === true) { // button pressed (I don't want up action)
+      midi.onNoteOn((note, vel)=>{
+         console.log("inside ON NOTEON function. Arg: " + note);
+         console.log("note: " + note);
+         console.log("vel: " + vel);
+         midi.noteOn(note, vel);
+         noteArray.push(note);
+      });
+
+      midi.onNoteOff((note)=>{
+         console.log("inside ON NOTEOFF function. Arg: " + note);
+         midi.noteOff(note);
+      });
+
+      midi.onControl((val, channel, type, controller)=>{
+         console.log("inside ON CONTROL function. VAl: " + val);
+         console.log("channel: " + channel);
+         console.log("type: " + type);
+         console.log("controller: " + controller);
+      });
+
+      midi.onPitchBend((val, channel, type)=>{
+         console.log("inside ON CONTROL function. VAl: " + val);
+         console.log("channel: " + channel);
+         console.log("type: " + type);
+
+      });
+    }
+    console.log(v);
+})
+
+
+var piano = new Nexus.Piano('#piano',{
+    'size': [500,125],
+    'mode': 'button',  // 'button', 'toggle', or 'impulse'
+    'lowNote': 24,
+    'highNote': 60
+})
+
+piano.on('change', function(v) {
+  if(v.state){
+    //midi.outdevice.playNote(v.note); // this is direct access to the WebMidi Library for obscure functions
+
+    midi.noteOn(v.note, 100, 1);
+    //midi.pitchBend(-0.25, 1, 750, 1150);
+    noteArray.push(v.note);
+  }else{
+    midi.noteOff(v.note);
+  }
+  console.log(v);
+})
+
+/*
+console.log("event: " + e.value);
+console.log("Received 'noteon' message (" + e.note.name + e.note.octave + ").");
+//noteOn(e.note.number);
+*/
+
+</script>
+</body>
+</html>
