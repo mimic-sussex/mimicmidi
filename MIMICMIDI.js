@@ -80,9 +80,15 @@ class MIDI {
 	}
 
 	noteOff(note, vel, channel, dur, time){
-		if(!vel) {vel = 60;}
-		if(!channel) {channel = "all";}
-		this.output.stopNote(note, channel, {rawVelocity: vel, duration:dur, time: WebMidi.time + time});
+		if(!note) { // stop all sounds if there is no note specified // like midiflush
+			for (var i = 0; i < 126; i++) {
+				this.output.stopNote(i+1);
+			}
+		} else {
+			if(!vel) {vel = 60;}
+			if(!channel) {channel = "all";}
+			this.output.stopNote(note, channel, {rawVelocity: vel, duration:dur, time: WebMidi.time + time});
+		}
 	}
 
 	pitchBend(val, channel, dur, time){
@@ -106,6 +112,11 @@ class MIDI {
 		this.output.sendProgramChange(program, channel, { duration:dur, time: WebMidi.time + time});
 	}
 
+	midiflush(){
+		for (var i = 0; i < 126; i++) {
+			this.output.stopNote(i+1);
+		}
+	}
 	//////////------------------------- RECEIVING MIDI IN -----------------------
 	// Generating live-codeable wrappers for the MIDI listeners of incoming MIDI
 	onNoteOn(func){

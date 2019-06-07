@@ -13,6 +13,7 @@
 
 MIDI In:<div nexus-ui="select" id="midiInputs"></div>
 MIDI Out: <div nexus-ui="select" id="midiOutputs"></div>
+MIDI Out Channel: <div nexus-ui="select" id="midiOutChannel"></div>
 <div nexus-ui="button" id="refreshDevices"></div>
 <div nexus-ui="button" id="setMIDIFunctions"></div>
 <div nexus-ui="piano" id="piano"></div>
@@ -21,7 +22,7 @@ MIDI Out: <div nexus-ui="select" id="midiOutputs"></div>
 
 var midi = new MIDI();
 var noteArray = [];
-
+var midioutchannel = 1;
 
 // this won't work as there is no devices available at this point in time
 // midi.setInDevice(3);
@@ -49,6 +50,14 @@ selectOut.on('change',function(v) {
   console.log("midi out name: " +  midi.name);
 })
 
+var selectOutChannel = new Nexus.Select('#midiOutChannel',{
+  'size': [300,30],
+  'options': [1,2,3,4,5,6,7,8,9,10, 11, 12,13,14,15, 16]
+})
+selectOutChannel.on('change',function(v) {
+  console.log("midi out channel: " +  v.index);
+  midioutchannel = v.index;
+})
 
 
 var deviceButton = new Nexus.TextButton('#refreshDevices',{
@@ -114,7 +123,7 @@ piano.on('change', function(v) {
   if(v.state){
     //midi.outdevice.playNote(v.note); // this is direct access to the WebMidi Library for obscure functions
 
-    midi.noteOn(v.note, 100, 1);
+    midi.noteOn(v.note, 100, midioutchannel);
     //midi.pitchBend(-0.25, 1, 750, 1150);
     noteArray.push(v.note);
   }else{
